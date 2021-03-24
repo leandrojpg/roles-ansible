@@ -1,0 +1,25 @@
+- hosts: all
+  tasks:
+
+    - name: Copia AV
+      copy:
+        src: /root/AGLINUX
+        dest: /tmp
+        remote_src: no
+    
+    - name: Install apache unzip
+      apt:
+        name: unzip
+        state: present
+
+
+    - name: Executa
+      ansible.builtin.script:
+        cmd: /root/AGLINUX/0409/install.sh -i
+
+
+    - name: Remove instalacao
+      ansible.builtin.file:
+        path: /root/AGLINUX
+        state: absent
+

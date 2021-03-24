@@ -1,0 +1,89 @@
+- hosts: all
+  tasks:
+
+    - name: Atualiza todos os Pacotes
+      apt:
+        name: "*"
+        state: latest
+
+
+    - name: Importar Chave
+      apt_key:
+        url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Adiciona repositorio da versao 7
+      ansible.builtin.apt_repository:
+          repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+          state: present
+          filename: elastic-7.x.list
+
+
+    - name: Atualiza o Cache
+      apt:
+        update_cache: yes
+
+
+        
+    - name: Instala pacotes necessarios +  Logstash
+      apt:
+        pkg:
+        - apt-transport-https
+        - unzip
+        - default-jre
+        - logstash
+
+
+    -  name: Configura Logstash para Ouvir na porta 8080
+       template: src=logstash.conf.j2 dest=/etc/logstash/logstash.conf
+       tags:
+         - tunning_logstash
+
+
+    -  name: Configura Logstash para Ouvir na porta 8080
+       template: src=pipelines.yml.j2 dest=/etc/logstash/pipelines.yml
+       tags:
+         - tunning_pipeline
+
+
+
+    -  name: Configura Logstash Input config
+       template: src=logstash.yml.j2 dest=/etc/logstash/logstash.yml
+
+
+    - name: Inicia Logstash
+      systemd:
+        name: logstash.service
+        state: restarted
+        enabled: true
+      tags:
+        - restart
+
+        
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+     
+
+
+
+
+
+
+

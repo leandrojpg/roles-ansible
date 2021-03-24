@@ -1,0 +1,45 @@
+##
+server.name: 'srv-slap1024'
+server.host: '0.0.0.0'
+server.port: 5601
+
+server.maxPayloadBytes: 8388608
+
+elasticsearch.hosts: ['http://127.0.0.1:9200']
+elasticsearch.username: 'kibana_system'
+elasticsearch.password: 'kibana'
+elasticsearch.requestTimeout: 132000
+elasticsearch.shardTimeout: 120000
+
+kibana.index: '.kibana'
+
+#kibana.defaultAppId: 'dashboard/<dashboard_id>'
+#
+##logging.quiet: true
+##logging.timezone: 'UTC'
+#
+#vega.enableExternalUrls: true
+#
+#console.enabled: true
+#
+#xpack.security.enabled: true
+#xpack.security.audit.enabled: false
+#
+xpack.monitoring.enabled: true
+xpack.monitoring.kibana.collection.enabled: true
+xpack.monitoring.kibana.collection.interval: 30000
+xpack.grokdebugger.enabled: true
+xpack.searchprofiler.enabled: true
+xpack.graph.enabled: false
+xpack.infra.enabled: true
+xpack.ml.enabled: false
+xpack.apm.enabled: true
+xpack.apm.ui.enabled: true
+
+vis_type_vega.enableExternalUrls: true
+#ega.enableExternalUrls: true
+
+console.enabled: true
+
+xpack.security.enabled: true
+xpack.security.audit.enabled: false

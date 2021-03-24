@@ -1,0 +1,164 @@
+- hosts: all
+  tasks:
+
+    - name: Atualiza todos os Pacotes
+      apt:
+        name: "*"
+        state: latest
+
+
+    - name: Importar Chave
+      apt_key:
+        url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Adiciona repositorio da versao 7
+      ansible.builtin.apt_repository:
+          repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+          state: present
+          filename: elastic-7.x.list
+
+
+    - name: Atualiza o Cache
+      apt:
+        update_cache: yes
+
+
+        
+    - name: Instala pacotes necessarios +  Elastic7
+      apt:
+        pkg:
+        - apt-transport-https
+        - unzip
+        - elasticsearch
+        - kibana
+
+
+    - name: Cria diretorio de configuracao para tunning de SO
+      ansible.builtin.file:
+        path: /etc/systemd/system/elasticsearch.service.d/
+        state: directory
+        mode: '0755'
+      tags:
+        - create_dir
+
+
+
+    -  name: Cria o tunning do SO
+       template: src=elasticsearch.conf.j2 dest=/etc/systemd/system/elasticsearch.service.d/elasticsearch.conf
+       tags:
+         - tunning_so
+
+
+    -  name: Parametros Gerais de memoria 
+       template: src=70-elasticsearch.conf.j2 dest=/etc/sysctl.d/70-elasticsearch.conf
+       tags:
+         - tunning_memoria
+
+
+    -  name: Configura YML do Elastic
+       template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml
+       tags:
+         - tunning_yml
+
+
+    -  name: Configura memoria JVM
+       template: src=jvm.options.j2 dest=/etc/elasticsearch/jvm.options
+       tags:
+         - tunning_java
+
+
+    -  name: Configura Kibana
+       template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml
+       tags:
+         - tunning_kibana
+    
+
+    - name: Faz reload do daemond para validar as configuracaoes dos servicos
+      systemd:
+        daemon_reload: yes
+
+
+    - name: Inicia Elastic
+      systemd:
+        name: elasticsearch.service
+        state: started
+        enabled: true
+
+        
+    - name: Inicia Kibana
+      systemd:
+        name: kibana.service
+        state: started
+        enabled: true
+
+    - name: Senhas builtin Users
+      shell: yes | /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
+      register: mypass
+
+    - name: Print
+      debug:
+       var:  mypass.stdout_lines
+
+    - name: Remove Elastic
+      shell: apt-get --purge autoremove elasticsearch -y
+      tags:
+        - remove_elastic
+
+    - name: Remove diretorios Elastic remanececentes
+      file:
+        state: absent
+        path: "{{item}}"
+      with_items:
+        - /var/lib/elasticsearch/
+        - /etc/elasticsearch
+      tags:
+        - remove_files
+
+
+    - name:
+      debug:
+        msg:
+          - "EDITE O ARQUIVO /etc/kibana/kibana.yml"
+          - "INSIRA NAS LINHAS ==> elasticsearch.username: -- > kibana_system E ==> elasticsearch.password:"
+          - "-- > A SENHA CORRESPONDENTE MOSTRADA ACIMA EM VERDE"
+          - "LOGUE NO KIBANA USANDO O HASH CORRESPONDE AO USUARIO ELASTIC CONFORME MOSTRADO ACIMA EM VERDE"
+          - "TROQUE SE PREFERIR A SENHA DE  TODOS OS USUÁRIO APÓS LOGAR NO KIBANA NA OPCAO MANAGER -- > USERS"
+          - "REINICIE O KIBANA APÓS TROCAR A SENHA NO ARQUIVO /etc/kibana/kibana.yml == > systemctl restart kibana"
+          - "VERIFIQUE O LOG EM BUSCA DO TRECHO COM O COMANDO  tail -n150 /var/log/kibana/kibana.log | grep 'Server running'"
+      tags:
+        - messages
+
+     
+
+      
+      
+      
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+     
+
+
+
+
+
+
+
