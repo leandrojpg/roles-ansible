@@ -27,6 +27,9 @@
          docker logout
          docker login -u cti -p Ativas.123 registry.grupoaec.com.br
       register: mypass
+      tags:
+        - login
+
 
 
     - name: Print
