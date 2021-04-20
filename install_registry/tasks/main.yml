@@ -1,0 +1,43 @@
+    - name: Cria o diretorio para o proxy do docker
+      ansible.builtin.file:
+        path: /etc/systemd/system/docker.service.d/
+        state: directory
+        mode: '0755'
+
+
+    - name: Cria o arquivo padrao do registry local
+      template: src=daemon.json.j2 dest=/etc/docker/daemon.json
+
+
+
+    - name: Faz o dropin no docker
+      template: src=http-proxy.conf.j2 dest=/etc/systemd/system/docker.service.d/http-proxy.conf
+
+
+
+    - name: Reinicia o daemon-reload e o docker
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: docker.service
+
+
+    - name: Faz login no registry local
+      shell: |
+         docker logout
+         docker login -u cti -p Ativas.123 registry.grupoaec.com.br
+      register: mypass
+
+
+    - name: Print
+      debug:
+        var: mypass.stdout_lines
+
+  
+
+
+
+      
+    
+
+ 
