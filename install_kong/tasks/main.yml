@@ -1,0 +1,159 @@
+
+    - name: Cria o arquivo de definicao limits
+      template: src=limits.conf.j2 dest=/etc/security/limits.conf
+
+
+
+    - name: Cria o arquivo de definicao kernet
+      template: src=95-kong-specific.conf.j2 dest=/etc/sysctl.d/95-kong-specific.conf
+
+
+
+    - name: Recarrega o sysct
+      shell: | 
+        sysctl -p --system
+#        sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+#        echo "deb https://kong.bintray.com/kong-deb `lsb_release -sc` main" | sudo tee -a /etc/apt/sources.list
+
+
+    - name: Adiciona chave do repo do Postgres
+      ansible.builtin.apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+      tags: add_postgres1
+
+
+    - name: Adiciona repo postgres
+      ansible.builtin.apt_repository:
+        repo:  deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main
+        state: present
+      tags: add_postres2
+
+
+    - name: Adiciona repo do kong
+      ansible.builtin.apt_repository:
+        repo: deb https://kong.bintray.com/kong-deb/ focal main
+        state: present
+      tags: add_repo_kong
+
+
+
+    - name: Adiciona chave do repo do kong
+      ansible.builtin.apt_key:
+        url: https://ftp-master.debian.org/keys/archive-key-6.0.asc
+        state: present
+      tags: add_key_kong
+
+
+
+    - name: Download foo.conf
+      get_url:
+        url: https://bintray.com/user/downloadSubjectPublicKey?username=bintray
+        dest: /etc/bintray.key
+      tags: add_key1
+
+
+    - name:  Add Apt signing key on remote server to keyring
+      apt_key:
+        file: /etc/bintray.key
+        state: present
+      tags: add_key2
+
+
+    - name: Atualiza o cache 
+      apt:
+        update_cache: yes
+
+    - name: Instala os pacotes base
+      apt:
+        pkg:
+        - build-essential
+        - net-tools 
+        - curl
+        - git
+        - software-properties-common
+        - openssl 
+        - libpcre3 
+        - postgresql-9.6 
+        - libpcre3-dev 
+        - procps 
+        - perl 
+        - apt-transport-https
+        - python3-pip
+        - kong
+      tags: instala
+
+
+    
+    - name: Inicia o postgres
+      service:
+        enabled: yes
+        name: postgresql
+        state: restarted
+
+
+    # psycopg2 needed for user, db creation
+    - pip:
+        name: psycopg2-binary
+
+
+    - name: Cria o usuario kong
+      postgresql_user:
+        user: "kong"
+        password: "portprd@aec"
+        role_attr_flags: "CREATEDB,NOSUPERUSER"
+      become: true
+      become_user: postgres
+
+    - name: Cria o banco de dados chamado kong
+      postgresql_db:
+        name: "kong"
+        state: present
+      become: true
+      become_user: postgres
+
+
+
+    - name: Cria o usuario konga
+      postgresql_user:
+        user: "konga"
+        password: "portprd@aec"
+        role_attr_flags: "CREATEDB,NOSUPERUSER"
+      become: true
+      become_user: postgres
+
+    - name: Cria o banco de dados chamado konga
+      postgresql_db:
+        name: "konga"
+        state: present
+      become: true
+      become_user: postgres
+
+
+    - name: Cria a configuracao padrao do kong
+      template: src=kong.conf.j2 dest=/etc/kong/kong.conf
+
+
+    - name: Realiza a copia dos certificados
+      copy:
+        src: /etc/ansible/roles/install_kong/certs
+        dest: /etc/kong/
+
+
+    - name: Inicia o kong
+      shell: | 
+        kong migrations bootstrap -c /etc/kong/kong.conf
+        kong start -c /etc/kong/kong.conf
+
+
+
+
+
+
+
+
+
+
+
+
+ 
