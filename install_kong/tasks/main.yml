@@ -80,9 +80,9 @@
         - perl 
         - apt-transport-https
         - python3-pip
+        - python3-docker
         - kong
       tags: instala
-
 
     
     - name: Inicia o postgres
@@ -92,42 +92,57 @@
         state: restarted
 
 
-    # psycopg2 needed for user, db creation
-    - pip:
-        name: psycopg2-binary
+    - name: Instala pacotes pip
+      pip:
+        name: ['psycopg2-binary']
+        state: latest
+#     with_items:
+#       - psycopg2-binary
+#       - docker
+         
+#       name: 
+#         - psycopg2-binary
+#         - docker
+      tags: pip
 
 
     - name: Cria o usuario kong
       postgresql_user:
-        user: "kong"
+        login_user: postgres
+        db: postgres
         password: "portprd@aec"
-        role_attr_flags: "CREATEDB,NOSUPERUSER"
+        name: kong
       become: true
       become_user: postgres
 
     - name: Cria o banco de dados chamado kong
       postgresql_db:
+        login_user: postgres
         name: "kong"
         state: present
+        owner: kong
       become: true
       become_user: postgres
 
 
-
     - name: Cria o usuario konga
       postgresql_user:
-        user: "konga"
+        login_user: postgres
+        db: postgres
         password: "portprd@aec"
-        role_attr_flags: "CREATEDB,NOSUPERUSER"
+        name: konga
       become: true
       become_user: postgres
 
     - name: Cria o banco de dados chamado konga
       postgresql_db:
+        login_user: postgres
         name: "konga"
         state: present
+        owner: konga
       become: true
       become_user: postgres
+
 
 
     - name: Cria a configuracao padrao do kong
@@ -144,16 +159,44 @@
       shell: | 
         kong migrations bootstrap -c /etc/kong/kong.conf
         kong start -c /etc/kong/kong.conf
+      ignore_errors: yes
 
 
+    - name: Inicia um container de ignicao para popular o banco
+      docker_container:
+        name: konga_prepara
+        image: pantsel/konga:latest
+        networks_cli_compatible: yes
+        networks:
+          - name: host
+        command: ["-c", "prepare -a postgres -u postgresql://konga:portprd@aec@127.0.0.1:5432/konga"]
+      register: mypass
+
+    - name: Print
+      debug:
+        var: mypass.stdout_lines
 
 
+    - name: Inicia o container Konga
+      docker_container:
+        name: konga_dashboard
+        image: pantsel/konga
+        networks_cli_compatible: yes
+        networks:
+          - name: host
+        env:
+          DB_ADAPTER: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
+          DB_USER: konga
+          DB_PASSWORD: portprd@aec
+          DB_DATABASE: konga
+        ports:
+          - "1337:1337"
+      register: mypass2
+
+    - name: Print
+      debug:
+        var: mypass2.stdout_lines
 
 
-
-
-
-
-
-
- 
