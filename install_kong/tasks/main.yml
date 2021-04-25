@@ -182,8 +182,7 @@
         name: konga_dashboard
         image: pantsel/konga
         networks_cli_compatible: yes
-        networks:
-          - name: host
+        network_mode: "host"
         env:
           DB_ADAPTER: postgres
           DB_HOST: 127.0.0.1
