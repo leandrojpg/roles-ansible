@@ -3,16 +3,73 @@
         path: /etc/systemd/system/docker.service.d/
         state: directory
         mode: '0755'
+      tags: create1
+
+
+    - name: Cria diretorio /etc/docker se nao existir
+      ansible.builtin.file:
+        path: /etc/docker
+        state: directory
+        mode: '0755'
+      tags: create2
 
 
     - name: Cria o arquivo padrao do registry local
       template: src=daemon.json.j2 dest=/etc/docker/daemon.json
+      tags: create3 
 
 
 
     - name: Faz o dropin no docker
       template: src=http-proxy.conf.j2 dest=/etc/systemd/system/docker.service.d/http-proxy.conf
+      tags: create4
 
+
+    - name: Instala os pacotes base
+      apt:
+        pkg:
+          - build-essential
+          - net-tools
+          - curl
+          - git
+          - software-properties-common
+          - openssl
+          - libpcre3
+          - libpcre3-dev
+          - procps
+          - perl
+          - apt-transport-https
+          - python3-pip
+          - python3-docker
+          - gnupg-agent
+          - ca-certificates
+      tags: instala
+
+
+
+    - name: Adiciona a chave do repo docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+ 
+
+    - name: Adiciona  repositorio da ultima versao estavel do docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+
+
+    - name: Instala o  Docker
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - docker-ce
+        - docker-ce-cli 
+        - containerd.io
 
 
     - name: Reinicia o daemon-reload e o docker
@@ -22,25 +79,14 @@
         name: docker.service
 
 
+    - name: Faz o daemond reload
+      command: systemctl daemon-reload
+
+
     - name: Faz login no registry local
       shell: |
          docker logout
          docker login -u cti -p Ativas.123 registry.grupoaec.com.br
-      register: mypass
       tags:
         - login
 
-
-
-    - name: Print
-      debug:
-        var: mypass.stdout_lines
-
-  
-
-
-
-      
-    
-
- 

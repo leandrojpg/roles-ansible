@@ -29,20 +29,20 @@
         state: present
       tags: add_postres2
 
-
-    - name: Adiciona repo do kong
-      ansible.builtin.apt_repository:
-        repo: deb https://kong.bintray.com/kong-deb/ focal main
-        state: present
-      tags: add_repo_kong
-
-
-
     - name: Adiciona chave do repo do kong
       ansible.builtin.apt_key:
         url: https://ftp-master.debian.org/keys/archive-key-6.0.asc
         state: present
       tags: add_key_kong
+
+
+
+    - name: Adiciona repo do kong
+      ansible.builtin.apt_repository:
+        repo: deb https://kong.bintray.com/kong-deb focal main
+        state: present
+        update_cache: no
+      tags: add_repo_kong
 
 
 
@@ -63,6 +63,13 @@
     - name: Atualiza o cache 
       apt:
         update_cache: yes
+
+
+
+    - name: Atualiza todos os pacotes para as versoes mais novas
+      apt:
+        upgrade=dist force_apt_get=yes
+
 
     - name: Instala os pacotes base
       apt:

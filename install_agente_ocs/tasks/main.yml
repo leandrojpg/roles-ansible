@@ -1,0 +1,42 @@
+    - name: Instala o  agente OCS
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - ocsinventory-agent
+
+
+    - name: Cria o arquivo de configuracao do OCS
+      template: src=ocsinventory-agent.cfg.j2 dest=/etc/ocsinventory/ocsinventory-agent.cfg
+
+    - name: Remove a entrada no_proxy
+      lineinfile:
+        path: /etc/environment
+        regex: '^export no_proxy'
+        state: absent
+
+    - name: Inseri a linha export no_proxy com as excessoes
+      lineinfile: 
+        path: /etc/environment
+        line: export no_proxy=localhost,127.0.0.0/8,.grupoaec.com.br
+        insertbefore: EOF
+
+
+    - name: Cria o arquivo de crontab
+      template: src=ocsagent.j2 dest=/etc/cron.d/ocsagent
+
+    - name: Executa inventario
+      shell: /usr/bin/ocsinventory-agent --force
+
+
+
+
+
+ 
+
+       
+
+    
+      
