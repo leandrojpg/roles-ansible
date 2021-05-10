@@ -6,6 +6,53 @@
       vars:
         packages:
         - ocsinventory-agent
+      when: ansible_distribution == 'Ubuntu'
+
+
+    - name: Instala repositorio Epel no Centos
+      yum:
+        name: epel-release
+        state: latest
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+
+
+
+    - name: Copia o repo atualizado
+      copy:
+        src: epel.repo
+        dest: /etc/yum.repos.d
+        force: yes 
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+
+    - name: Remove a entrada no_proxy
+      lineinfile:
+        path: /etc/environment
+        regex: '^export no_proxy'
+        state: absent
+
+    - name: Inseri a linha export no_proxy com as excessoes
+      lineinfile:
+        path: /etc/environment
+        line: export no_proxy=localhost,127.0.0.0/8,.grupoaec.com.br
+        insertbefore: EOF
+
+
+    
+    - name:
+      yum:
+        name: ocsinventory-agent
+        state: latest
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+     
+
+
+    - name: Atualiza todos os pacotes do servidor para ultima versao
+      apt: upgrade=dist
+      when: ansible_distribution == 'Ubuntu'
 
 
     - name: Cria o arquivo de configuracao do OCS
@@ -27,8 +74,20 @@
     - name: Cria o arquivo de crontab
       template: src=ocsagent.j2 dest=/etc/cron.d/ocsagent
 
-    - name: Executa inventario
+    - name: Executa inventario No Ubuntu
       shell: /usr/bin/ocsinventory-agent --force
+      when: ansible_facts['os_family'] == 'Debian'
+
+
+    - name: Executa inventario No Centos
+      shell: /usr/sbin/ocsinventory-agent --force
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+
+
+
+    
 
 
 
