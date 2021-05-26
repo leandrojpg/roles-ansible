@@ -1,0 +1,46 @@
+---
+- name: Importa Chave do repo do Wazuh Agent Client
+  apt_key:
+    url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    state: present
+
+
+- name: Adiciona repositorio especifico para o Wazuh
+  ansible.builtin.apt_repository:
+    repo: deb https://packages.wazuh.com/4.x/apt/ stable main
+    state: present
+    filename: wazuh
+    update_cache: yes
+
+
+
+- name: Instala o Cliente do Wazhu
+  apt:
+    name: wazuh-agent
+    state: present
+  environment: 
+    WAZUH_MANAGER: 192.168.161.82
+
+
+- name: Insere o servico no boot
+  ansible.builtin.systemd:
+    name: wazuh-agent
+    state: started
+    enabled: yes
+
+
+- name: Trava a atualização do docker e docker-cli
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+     - docker-ce-cli
+     - docker-ce
+  tags: trava
+
+#- name: Adiciona loop para adicionar agentes no grupo vmlinux
+#  shell: "/var/ossec/bin/agent_groups -a -f -i {{item}} VMS-URA-PCI -q"
+#  run_once: true
+#  delegate_to: 192.168.161.82
+#  with_items:
+#    -  001
