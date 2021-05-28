@@ -38,9 +38,11 @@
      - docker-ce
   tags: trava
 
-#- name: Adiciona loop para adicionar agentes no grupo vmlinux
-#  shell: "/var/ossec/bin/agent_groups -a -f -i {{item}} VMS-URA-PCI -q"
-#  run_once: true
-#  delegate_to: 192.168.161.82
-#  with_items:
-#    -  001
+
+- name: Adiciona loop para adicionar agentes no grupo vmlinux
+  shell: /var/ossec/bin/agent_groups -a -i "{{ item }}" -g VMS-URA-PCI -q
+  delegate_to: localhost
+  with_items:
+    -  001
+  tags: loop
+
