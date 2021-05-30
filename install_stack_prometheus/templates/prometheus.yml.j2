@@ -1,0 +1,53 @@
+#------------------------------------------------------------------------------#
+#             CONFIGURACAO GLOBAL QUE AFETA TODOS OS JOBS ABAIXO               #
+#------------------------------------------------------------------------------#
+global:
+  scrape_interval: 15s      # -->  Tempo para obter as metricas dos endpoints
+  evaluation_interval: 15s  # -->  Tempo para avaliar as regras se verdadeiro ele gera o alerta (Inativo,Pending,Firing) e Aciona o AlertManager que tem os campos "group_by" "group_interval" "group_wait"
+  # scrape_timeout is set to the global default (10s).
+
+
+#------------------------------------------------------------------------------#
+#             CONFIGURACAO DO ALERTMANAGER PARA ENVIO DE ALERTAS               #
+#------------------------------------------------------------------------------#
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+        - localhost:9093 # --> Inserir O IP Local ou localhosts(Abre o um socket)
+
+# --> Carrega o arquivo de regras dos alertas "alert.rules.yml"
+rule_files:
+   - "alert.rules.yml"
+
+#------------------------------------------------------------------------------#
+#             SERVICOS QUE O PROMETHEUS VAI MONITORA E CHECAR AS AS METRICAS   #
+#------------------------------------------------------------------------------#
+# --> O campo job_name: 'prometheus' é o nome que vai aparecer na interface Web de gerenciamento do Prometheus (Escolha um que faca sentido para voce)
+# --> O targets: ['localhost:9090'] Monitora o proprio servico rodando localmente para porta padrao do Prometheus
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+#-----------------------------------------------------------------------------------------#
+#             CONFIGURACAO ESPECIFICA SE FOR USAR BLACKBOX QUE MONITORA DNS/SITE/ICMP/TC  #
+#-----------------------------------------------------------------------------------------#
+
+# --> O campo job_name: 'Blackbox' De o nome que fizer sentido para voce (BlackBox é um binario GO usado para monitorar DNS,URL,ICMP/TCP)
+# --> O campo targets: Se tiver monitorando URL/SITE deve ser inserido nesse campo Ex: http://meusite.com
+  - job_name: 'Blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - "{{ansible_default_ipv4["address"]}}":8080 # --> Insira o IP+Porta/FQDN+Porta se estiver monitorando uma aplicação numa porta especifica ou algum site Ex: http://meusite.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "{{ansible_default_ipv4["address"]}}" # --> Insira o IP/FQDN do proprio servidor do Prometheus + Porta (9115)
+

@@ -1,0 +1,14 @@
+[Unit]
+Description=Alertmanager
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=alertmanager
+Group=alertmanager
+Type=simple
+ExecStart=/opt/monitoracao/alertmanager/alertmanager --config.file=/opt/monitoracao/alertmanager/alertmanager.yml --storage.path=/opt/monitoracao/alertmanager/data --web.external-url=http://localhost:9093 
+--log.level=debug
+
+[Install]
+WantedBy=default.target

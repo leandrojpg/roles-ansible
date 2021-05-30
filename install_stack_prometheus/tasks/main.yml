@@ -1,0 +1,93 @@
+---
+- name: Cria diretorio padrao para instalar os modulos do Prometheus (/opt/monitoracao/)
+  ansible.builtin.file:
+    path: /opt/monitoracao/prometheus
+    state: directory
+    mode: '0755'
+
+
+
+- name: Cria usuario padrao execucao do Prometheus
+  user:
+    name: prometheus
+    createhome: no
+    system: yes
+    state: present
+
+
+- name: Copia a instalacao do Prometheus para o Servidor
+  copy:
+    src: prometheus-2.24.1.linux-amd64.tar.gz
+    dest: /usr/local/bin/
+#    remote_src: yes
+
+
+- name: Descompactando o Prometheus que foi copiado do ansible
+  unarchive:
+#    remote_src: yes
+    src: /usr/local/bin/prometheus-2.24.1.linux-amd64.tar.gz
+    dest: /usr/local/bin/
+    copy: no
+    extra_opts: [--strip-components=1]
+
+
+
+- name: Remove arquivos desnecessarios
+  ansible.builtin.file:
+    path: /usr/local/bin/{{ item }}
+    state: absent
+  loop:
+    - prometheus-2.24.1.linux-amd64.tar.gz
+    - LICENSE
+    - NOTICE
+  tags: lixo
+
+
+
+# Sincroniza os para o diretorio de trabalho do Prometheus "remote_src" vai procurar no host gerenciado (Cliente)
+- name: Copia a instalacao do Prometheus para o Servidor
+  copy:
+    src: /usr/local/bin/{{ item }}
+    dest: /opt/monitoracao/prometheus
+    remote_src: yes
+  loop:
+    - consoles
+    - console_libraries
+  tags: movimenta
+
+
+- name: Altera permissao do binario do Prometheus
+  ansible.builtin.file:
+    path: /usr/local/bin/prometheus
+    owner: prometheus
+    group: prometheus
+    mode: 'a+x'
+
+
+- name: Altera permissao do diretorio padrao de configuracao do Prometheus
+  ansible.builtin.file:
+    path: /opt/monitoracao/prometheus/
+    recurse: yes
+    owner: prometheus
+    group: prometheus
+
+
+
+-  name: Cria o arquivo inicial de configuracao do Prometheus
+   template: src=prometheus.yml.j2 dest=/opt/monitoracao/prometheus/prometheus.yml
+
+
+
+-  name: Cria o servico do Prometheus
+   template: src=prometheus.service.j2 dest=/etc/systemd/system/prometheus.service
+   notify: restart prometheus
+
+
+
+
+
+
+
+
+
+
