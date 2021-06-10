@@ -66,9 +66,9 @@
 
 
 
-    - name: Atualiza todos os pacotes para as versoes mais novas
-      apt:
-        upgrade=dist force_apt_get=yes
+#    - name: Atualiza todos os pacotes para as versoes mais novas
+#      apt:
+#        upgrade=dist force_apt_get=yes
 
 
     - name: Instala os pacotes base
@@ -88,7 +88,7 @@
         - apt-transport-https
         - python3-pip
         - python3-docker
-        - kong
+        - kong=2.3.3
       tags: instala
 
     

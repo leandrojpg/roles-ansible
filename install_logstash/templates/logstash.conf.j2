@@ -4,10 +4,10 @@ input
         {
                 host => "0.0.0.0"
                 id => "http_input"
-                port => 8080
+                port => "8080"
                 codec => json
-                user => "automacao"
-                password => "elastic@2021"
+#                user => "automacao"
+#                password => "elastic@2021"
 
         }
 }
@@ -16,10 +16,10 @@ output
 {
         elasticsearch
         {
-                hosts => ["http://elk01.grupoaec.com.br:9200"]
+                hosts => ["http://{{ ansible_default_ipv4.address }}:9200"]
                 index => "%{[indice]}"
-                user => "elastic"
-                password => "portprd@aec"
+#                user => "elastic"
+#                password => "portprd@aec"
         }
 }
 

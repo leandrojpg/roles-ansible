@@ -92,13 +92,13 @@
         state: started
         enabled: true
 
-    - name: Senhas builtin Users
-      shell: yes | /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
-      register: mypass
+#    - name: Senhas builtin Users
+#      shell: yes | /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
+#      register: mypass
 
-    - name: Print
-      debug:
-       var:  mypass.stdout_lines
+#    - name: Print
+#      debug:
+#       var:  mypass.stdout_lines
 
     - name: Remove Elastic
       shell: apt-get --purge autoremove elasticsearch -y
@@ -116,49 +116,15 @@
         - remove_files
 
 
-    - name:
-      debug:
-        msg:
-          - "EDITE O ARQUIVO /etc/kibana/kibana.yml"
-          - "INSIRA NAS LINHAS ==> elasticsearch.username: -- > kibana_system E ==> elasticsearch.password:"
-          - "-- > A SENHA CORRESPONDENTE MOSTRADA ACIMA EM VERDE"
-          - "LOGUE NO KIBANA USANDO O HASH CORRESPONDE AO USUARIO ELASTIC CONFORME MOSTRADO ACIMA EM VERDE"
-          - "TROQUE SE PREFERIR A SENHA DE  TODOS OS USUÁRIO APÓS LOGAR NO KIBANA NA OPCAO MANAGER -- > USERS"
-          - "REINICIE O KIBANA APÓS TROCAR A SENHA NO ARQUIVO /etc/kibana/kibana.yml == > systemctl restart kibana"
-          - "VERIFIQUE O LOG EM BUSCA DO TRECHO COM O COMANDO  tail -n150 /var/log/kibana/kibana.log | grep 'Server running'"
-      tags:
-        - messages
-
-     
-
-      
-      
-      
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
+ #   - name:
+ #     debug:
+ #       msg:
+ #         - "EDITE O ARQUIVO /etc/kibana/kibana.yml"
+ #         - "INSIRA NAS LINHAS ==> elasticsearch.username: -- > kibana_system E ==> elasticsearch.password:"
+ #         - "-- > A SENHA CORRESPONDENTE MOSTRADA ACIMA EM VERDE"
+ #         - "LOGUE NO KIBANA USANDO O HASH CORRESPONDE AO USUARIO ELASTIC CONFORME MOSTRADO ACIMA EM VERDE"
+ #         - "TROQUE SE PREFERIR A SENHA DE  TODOS OS USUÁRIO APÓS LOGAR NO KIBANA NA OPCAO MANAGER -- > USERS"
+ #         - "REINICIE O KIBANA APÓS TROCAR A SENHA NO ARQUIVO /etc/kibana/kibana.yml == > systemctl restart kibana"
+ #         - "VERIFIQUE O LOG EM BUSCA DO TRECHO COM O COMANDO  tail -n150 /var/log/kibana/kibana.log | grep 'Server running'"
+ #     tags:
 
