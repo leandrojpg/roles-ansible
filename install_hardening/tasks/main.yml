@@ -1,0 +1,30 @@
+- name: Nao atualiza o pacote do docker e containerd
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+
+
+- name: Faz a atualização do cache
+  apt: update_cache=yes
+
+- name: Instala o pacote para gerar atualizacao automatica de seguranca somente
+  apt: name=unattended-upgrades state=present
+  
+
+- name: Adiciona tarefa de atualizacao de seguranca 
+  ansible.builtin.cron:
+    name: "Executa update de seguranca"
+    minute: "03"
+    hour: "09"
+    day: "*"
+    month: "*"
+    weekday: "3"
+    job: "sudo /usr/bin/unattended-upgrade -v"
+
+
+

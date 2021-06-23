@@ -1,6 +1,3 @@
-- hosts: all
-  tasks:
-
     - name: Atualiza todos os Pacotes
       apt:
         name: "*"
@@ -11,6 +8,8 @@
       apt_key:
         url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
         state: present
+
+
 
     - name: Adiciona repositorio da versao 7
       ansible.builtin.apt_repository:
@@ -25,13 +24,12 @@
 
 
         
-    - name: Instala pacotes necessarios +  Elastic7
+    - name: Instala pacotes necessarios +  Elastic7 versao 7.11.2
       apt:
         pkg:
         - apt-transport-https
         - unzip
-        - elasticsearch
-        - kibana
+        - elasticsearch=7.11.2
 
 
     - name: Cria diretorio de configuracao para tunning de SO
@@ -68,11 +66,6 @@
          - tunning_java
 
 
-    -  name: Configura Kibana
-       template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml
-       tags:
-         - tunning_kibana
-    
 
     - name: Faz reload do daemond para validar as configuracaoes dos servicos
       systemd:
@@ -86,45 +79,40 @@
         enabled: true
 
         
-    - name: Inicia Kibana
-      systemd:
-        name: kibana.service
-        state: started
-        enabled: true
+    - name: Gerar Senhas automaticas para usuarios de sistema "builtin Users"
+      shell: yes | /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
+      register: mypass
 
-#    - name: Senhas builtin Users
-#      shell: yes | /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
-#      register: mypass
+    - name: Print
+      debug:
+       var:  mypass.stdout_lines
 
-#    - name: Print
-#      debug:
-#       var:  mypass.stdout_lines
+#    - name: Remove Elastic
+#      shell: apt-get --purge autoremove elasticsearch -y
+#      tags:
+#        - remove_elastic
 
-    - name: Remove Elastic
-      shell: apt-get --purge autoremove elasticsearch -y
+#    - name: Remove diretorios Elastic remanececentes
+#      file:
+#        state: absent
+#       path: "{{item}}"
+#      with_items:
+#        - /var/lib/elasticsearch/
+#        - /etc/elasticsearch
+#      tags:
+#        - remove_files
+#
+
+    - name:
+      debug:
+        msg:
+          - "1 - EDITE O ARQUIVO /etc/kibana/kibana.yml"
+          - "2 - INSIRA NA LINHA ==> elasticsearch.username O USUARIO kibana_system"
+          - "3 - INSIRA NA LINHA ==> elasticsearch.password A SENHA GERADA ACIMA PARA O USUARIO kibana_system"
+          - "4 - REINICIE O KIBANA APÓS MODIFICACOES ACIMA NO ARQUIVO /etc/kibana/kibana.yml == > systemctl restart kibana"
+          - "5 - LOGUE NO KIBANA COM O USUARIO elastic  E A SENHA GERADA PARA ESSE USUARIO"
+          - "6 - TROQUE SE PREFERIR A SENHA DE  TODOS OS USUÁRIO APÓS LOGAR NO KIBANA NA OPCAO MANAGER -- > USERS"
+          - "7 - VERIFIQUE O LOG EM BUSCA DO TRECHO COM O COMANDO grep -i 'Server running' /var/log/kibana/kibana.log"
       tags:
-        - remove_elastic
-
-    - name: Remove diretorios Elastic remanececentes
-      file:
-        state: absent
-        path: "{{item}}"
-      with_items:
-        - /var/lib/elasticsearch/
-        - /etc/elasticsearch
-      tags:
-        - remove_files
-
-
- #   - name:
- #     debug:
- #       msg:
- #         - "EDITE O ARQUIVO /etc/kibana/kibana.yml"
- #         - "INSIRA NAS LINHAS ==> elasticsearch.username: -- > kibana_system E ==> elasticsearch.password:"
- #         - "-- > A SENHA CORRESPONDENTE MOSTRADA ACIMA EM VERDE"
- #         - "LOGUE NO KIBANA USANDO O HASH CORRESPONDE AO USUARIO ELASTIC CONFORME MOSTRADO ACIMA EM VERDE"
- #         - "TROQUE SE PREFERIR A SENHA DE  TODOS OS USUÁRIO APÓS LOGAR NO KIBANA NA OPCAO MANAGER -- > USERS"
- #         - "REINICIE O KIBANA APÓS TROCAR A SENHA NO ARQUIVO /etc/kibana/kibana.yml == > systemctl restart kibana"
- #         - "VERIFIQUE O LOG EM BUSCA DO TRECHO COM O COMANDO  tail -n150 /var/log/kibana/kibana.log | grep 'Server running'"
- #     tags:
+        - senhas
 

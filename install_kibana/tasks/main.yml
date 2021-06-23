@@ -1,0 +1,50 @@
+    - name: Atualiza todos os Pacotes
+      apt:
+        name: "*"
+        state: latest
+
+
+
+
+    - name: Importar Chave
+      apt_key:
+        url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Adiciona repositorio da versao 7
+      ansible.builtin.apt_repository:
+          repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+          state: present
+          filename: elastic-7.x.list
+
+
+    - name: Atualiza o Cache
+      apt:
+        update_cache: yes
+
+
+        
+    - name: Instala pacotes necessarios +  Elastic7
+      apt:
+        pkg:
+        - apt-transport-https
+        - unzip
+        - kibana=7.11.2
+
+
+    -  name: Configura Kibana
+       template: src=kibana.yml.j2 dest=/etc/kibana/kibana.yml
+       tags:
+         - tunning_kibana
+    
+
+    - name: Faz reload do daemond para validar as configuracaoes dos servicos
+      systemd:
+        daemon_reload: yes
+
+
+    - name: Inicia Kibana
+      systemd:
+        name: kibana.service
+        state: started
+        enabled: true

@@ -1,0 +1,14 @@
+- name: Nao atualiza o pacote do docker e contained
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+  
+
+- name: Atualiza todos os pacotes do servidor para ultima versao
+  apt: upgrade=dist
+  when: ansible_distribution == 'Ubuntu'
+

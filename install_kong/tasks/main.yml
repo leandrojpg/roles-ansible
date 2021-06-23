@@ -172,7 +172,7 @@
     - name: Inicia um container de ignicao para popular o banco
       docker_container:
         name: konga_prepara
-        image: pantsel/konga:latest
+        image: pantsel/konga
         networks_cli_compatible: yes
         networks:
           - name: host

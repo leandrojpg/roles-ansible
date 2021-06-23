@@ -50,9 +50,9 @@
      
 
 
-    - name: Atualiza todos os pacotes do servidor para ultima versao
-      apt: upgrade=dist
-      when: ansible_distribution == 'Ubuntu'
+#    - name: Atualiza todos os pacotes do servidor para ultima versao
+#      apt: upgrade=dist
+#      when: ansible_distribution == 'Ubuntu'
 
 
     - name: Cria o arquivo de configuracao do OCS
