@@ -8,7 +8,25 @@
     - containerd.io
   
 
-- name: Atualiza todos os pacotes do servidor para ultima versao
-  apt: upgrade=dist
-  when: ansible_distribution == 'Ubuntu'
+# name: Atualiza todos os pacotes do servidor para ultima versao
+# apt: upgrade=dist
+# when: ansible_distribution == 'Ubuntu'
+
+
+- name: Faz a atualização do cache
+  apt: update_cache=yes
+
+- name: Instala o pacote para gerar atualizacao automatica de seguranca somente
+  apt: name=unattended-upgrades state=present
+
+
+- name: Adiciona tarefa de atualizacao de seguranca aos sabados as 01 da manha
+  ansible.builtin.cron:
+    name: "Executa update de seguranca 01 da manha"
+    minute: "01"
+    hour: "11"
+    day: "*"
+    month: "*"
+    weekday: "4"
+    job: "sudo /usr/bin/unattended-upgrade -v"
 

@@ -1,0 +1,14 @@
+- name: Restart ntp
+  ansible.builtin.service:
+    name: ntpd
+    state: restarted
+
+- name: Restart ntp
+  ansible.builtin.service:
+    name: ntp
+    state: restarted
+  when: ansible_distribution == 'Ubuntu'
+
+
+- name: Force ntp
+  shell: ntpdate -u {ntpdate_server}
