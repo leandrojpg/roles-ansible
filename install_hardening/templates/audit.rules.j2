@@ -1,0 +1,47 @@
+## User, group, password databases
+-w /etc/group -p wa -k etcgroup
+-w /etc/passwd -p wa -k etcpasswd
+-w /etc/gshadow -k etcgroup
+-w /etc/shadow -k etcpasswd
+-w /etc/security/opasswd -k opasswd
+
+## Sudoers file changes
+-w /etc/sudoers -p wa -k actions
+-w /etc/sudoers.d/ -p wa -k actions
+
+## Passwd
+-w /usr/bin/passwd -p x -k passwd_modification
+
+
+## SSH configuration
+-w /etc/ssh/sshd_config -k sshd
+-w /etc/ssh/sshd_config.d -k sshd
+
+## File Deletion Events by User
+-a always,exit -F arch=b32 -S rmdir -S unlink -S unli
+-a always,exit -F arch=b64 -S rmdir -S unlink -S unli
+
+## Login and Logout
+-w /var/log/lastlog -p wa -k logins
+-w /var/run/faillock/ -p wa -k logins
+
+# Remove logs inside logs sudo.logs
+-w /var/log/sudo.log -p wa -k actions
+
+# Monitoring changes into directory cluster URA
+-w /opt/cluster-swarm/ -p rwa
+
+
+## First rule - delete all
+-D
+
+## Increase the buffers to survive stress events.
+## Make this bigger for busy systems
+-b 8192
+
+## This determine how long to wait in burst of events
+--backlog_wait_time 0
+
+## Set failure mode to syslog
+-f 1
+-e 2
