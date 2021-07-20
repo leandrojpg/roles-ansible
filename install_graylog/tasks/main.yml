@@ -70,7 +70,12 @@
 - name: Install a .deb package
   apt:
     deb: "/tmp/{{ my_package_name }}.deb"
+
+
+- name: Atualiza o cache para instalar o graylog
+  apt:
     update_cache: yes
+
 
 - name: Instala pacotes extras graylog
   apt:
