@@ -1,0 +1,3 @@
+- targets: [{% for h in lista %}'{{h.host}}:{{h.porta}}'{%if not loop.last%}
+,{%endif%}{% endfor %}]
+

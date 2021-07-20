@@ -1,0 +1,20 @@
+- name: Update Inventario Prometheus
+  ansible.builtin.template:
+    src: demo.yml.j2
+    dest: /opt/monitoracao/prometheus/sd_config/demo.yml
+  vars:
+      lista:
+      - host: 10.64.202.83
+        porta: 9182
+      - host: 10.64.202.82
+        porta: 9182
+      - host: 10.64.202.84
+        porta: 9182
+      - host: 10.64.202.99
+        porta: 9182
+      - host: 10.64.202.100
+        porta: 9182
+
+
+   
+

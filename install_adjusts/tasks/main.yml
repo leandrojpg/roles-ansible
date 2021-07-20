@@ -4,6 +4,13 @@
   when: ansible_distribution == 'Ubuntu'
 
 
+- name: Atualiza todos os pacotes
+  apt:
+    name: "*"
+    state: latest
+  when: ansible_distribution == 'Ubuntu' 
+
+
 - name: Remove Chrony se tiver instalado no Ubuntu
   apt:
     name: ntp

@@ -1,20 +1,27 @@
-- name: Nao atualiza o pacote do docker e contained
-  dpkg_selections:
-    name: "{{ item }}"
-    selection: hold
-  with_items:
-    - docker-ce
-    - docker-ce-cli
-    - containerd.io
-  
-
-# name: Atualiza todos os pacotes do servidor para ultima versao
-# apt: upgrade=dist
-# when: ansible_distribution == 'Ubuntu'
+---
+# name: Nao atualiza o pacote do docker e contained
+# dpkg_selections:
+#   name: "{{ item }}"
+#   selection: hold
+# with_items:
+#   - docker-ce
+#   - docker-ce-cli
+#   - containerd.io
+- name: Atualiza todos os pacotes do servidor para ultima versao
+  apt: upgrade=dist
+  when: ansible_distribution == 'Ubuntu'
 
 
 - name: Faz a atualização do cache
   apt: update_cache=yes
+
+
+- name: Instala pacote para atualizar a versao de 18 para 20
+  apt: name=update-manager-core state=present
+
+- name: Executa o comando para atualizar de 18 para 20lts
+  shell: do-release-upgrade
+
 
 - name: Instala o pacote para gerar atualizacao automatica de seguranca somente
   apt: name=unattended-upgrades state=present
@@ -24,9 +31,13 @@
   ansible.builtin.cron:
     name: "Executa update de seguranca 01 da manha"
     minute: "01"
-    hour: "11"
+    hour: "01"
     day: "*"
     month: "*"
-    weekday: "4"
+    weekday: "6"
     job: "sudo /usr/bin/unattended-upgrade -v"
 
+
+- name: Aguardando o tempo de 2 minutos para reiniciar
+  reboot:
+    reboot_timeout: 120

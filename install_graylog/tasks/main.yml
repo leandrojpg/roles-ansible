@@ -1,0 +1,95 @@
+---
+- name: Faz a atualização do cache
+  apt: update_cache=yes
+
+- name: Atualiza todos os pacotes do servidor para ultima versao
+  apt: upgrade=dist
+  when: ansible_distribution == 'Ubuntu'
+
+
+- name: Adiciona chave de repositorio do MongoDB
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 9DA31620334BD75D9DCB49F368818C72E52529D4
+
+
+- name: Adiciona repositorio do MongoDB no Sourcelist
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 trusted=yes] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse"
+    state: present
+
+
+- name: Importar Chave
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+
+- name: Adiciona repositorio da versao 7
+  ansible.builtin.apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main
+    state: present
+    filename: elastic-7.x.list
+    update_cache: yes
+
+
+- name: Instala pacotes necessarios +  Elastic7 + MongoDB
+  apt:
+    pkg:
+      - apt-transport-https
+      - openjdk-8-jre-headless
+      - uuid-runtime
+      - pwgen
+      - software-properties-common
+      - mongodb-org
+      - unzip
+      - elasticsearch-oss
+
+
+-  name: Configura memoria JVM
+   template: src=jvm.options.j2 dest=/etc/elasticsearch/jvm.options
+
+
+- name: Faz reload do daemond para validar as configuracaoes dos servicos
+  systemd:
+    daemon_reload: yes
+
+
+- name: Inicia Elastic
+  systemd:
+    name: elasticsearch.service
+    state: started
+    enabled: true
+
+- name: Faz Download do pacote versao 4 do Graylog
+  get_url: 
+    url: "{{ my_package_url }}"
+    dest: "/tmp/{{ my_package_name }}.deb"
+
+
+- name: Install a .deb package
+  apt:
+    deb: "/tmp/{{ my_package_name }}.deb"
+    update_cache: yes
+
+- name: Instala pacotes extras graylog
+  apt:
+    pkg:
+      - apt-transport-https
+      - graylog-server
+      - graylog-integrations-plugins
+
+
+-  name: Configura o conf do  graylog
+   template: src=server.conf.j2 dest=/etc/graylog/server/server.conf
+
+
+- name: Inicia todos os serviços e marca para iniciar no boot
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+    - elasticsearch.service  
+    - mongod.service  
+    - graylog-server.service

@@ -27,7 +27,11 @@
     - 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
     - 0DCFCA5547B19D2A6099506096B3EE5F29111145 
   tags: remove_key
-  
+
+
+- name: Instala o pacote para gerar atualizacao automatica de seguranca somente
+  apt: name=unattended-upgrades state=present
+
 
 - name: Faz a atualização do cache
   apt: update_cache=yes
@@ -87,11 +91,11 @@
 - name: Adiciona tarefa de atualizacao de seguranca 
   ansible.builtin.cron:
     name: "Executa update de seguranca"
-    minute: "03"
-    hour: "09"
+    minute: "01"
+    hour: "01"
     day: "*"
     month: "*"
-    weekday: "3"
+    weekday: "6"
     job: "sudo /usr/bin/unattended-upgrade -v"
 
 
