@@ -9,8 +9,14 @@
 
 - name: Adiciona chave de repositorio do MongoDB
   ansible.builtin.apt_key:
-    keyserver: keyserver.ubuntu.com
-    id: 9DA31620334BD75D9DCB49F368818C72E52529D4
+    url: https://www.mongodb.org/static/pgp/server-4.0.asc
+    state: present
+
+
+#- name: Adiciona chave de repositorio do MongoDB
+#  ansible.builtin.apt_key:
+#    keyserver: keyserver.ubuntu.com
+#    id: 9DA31620334BD75D9DCB49F368818C72E52529D4
 
 
 - name: Adiciona repositorio do MongoDB no Sourcelist

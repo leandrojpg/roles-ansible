@@ -1,0 +1,15 @@
+####
+[Unit]
+Description=Portainer container
+After=docker.service
+Wants=network-online.target docker.socket
+Requires=docker.socket
+
+[Service]
+Restart=always
+ExecStart=/opt/portainer/portainer --data /opt/portainer/data
+ExecStop=/bin/kill -2 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+###

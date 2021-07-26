@@ -1,0 +1,61 @@
+---
+- name: Nao atualiza o pacote do docker e contained
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+
+- name: Faz a atualização do cache
+  apt: update_cache=yes
+
+
+- name: Cria diretorio para o portainer
+  file:
+    path: /opt/portainer
+    state: directory
+    mode: 0755
+
+
+- name: Cria diretorio para popular os dados
+  file:
+    path: /opt/portainer/data
+    state: directory
+    mode: 0755
+
+
+- name: Fazendo download do binario do portainer
+  get_url:
+    url: https://github.com/portainer/portainer/releases/download/2.6.1/portainer-2.6.1-linux-amd64.tar.gz
+    dest: /opt/portainer
+    mode: 0755
+
+
+- name: Descompactando
+  unarchive:
+    remote_src: yes
+    src: /opt/portainer/portainer-2.6.1-linux-amd64.tar.gz
+    dest: /opt/portainer
+    extra_opts: [--strip-components=1]
+
+
+#- name: Copia o binario para path padrao
+#  ansible.builtin.copy:
+#  src: /opt/portainer/portainer
+#  dest: /usr/local/bin/portainer
+
+
+
+- name: Cria o serviço no systemd para execucao do serviço.
+  template: src=portainer.service.j2 dest=/etc/systemd/system/portainer.service
+  notify: restart portainer
+ 
+
+
+
+
+
+
