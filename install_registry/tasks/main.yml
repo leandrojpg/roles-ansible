@@ -16,77 +16,104 @@
 
     - name: Cria o arquivo padrao do registry local
       template: src=daemon.json.j2 dest=/etc/docker/daemon.json
-      tags: create3 
+      tags: create3
 
 
 
     - name: Faz o dropin no docker
       template: src=http-proxy.conf.j2 dest=/etc/systemd/system/docker.service.d/http-proxy.conf
-      tags: create4
+#      vars:
+#        config: true
+#      changed_when: config
+      when: "ansible_default_ipv4.network == '192.168.160.0'"
+#      notify: 
+#        - restart docker
 
 
-    - name: Instala os pacotes base
-      apt:
-        pkg:
-          - build-essential
-          - net-tools
-          - curl
-          - git
-          - software-properties-common
-          - openssl
-          - libpcre3
-          - libpcre3-dev
-          - procps
-          - perl
-          - apt-transport-https
-          - python3-pip
-          - python3-docker
-          - gnupg-agent
-          - ca-certificates
-      tags: instala
+    - name: Valida se o serviço do docker esta em execucao
+      ansible.builtin.service_facts:
+
+    - name: Visualiza saida do status do servico
+      debug:
+        var: ansible_facts.services["docker.service"]
+
+    - name: Inicia docker se estiver parado
+      ansible.builtin.systemd:
+        name: docker.service
+        state: started
+      when: ansible_facts.services["docker.service"].state != "running"
+
+
+#    - name: Instala os pacotes base
+#      apt:
+#        pkg:
+#          - build-essential
+#          - net-tools
+#          - curl
+#          - git
+#          - software-properties-common
+#          - openssl
+#          - libpcre3
+#          - libpcre3-dev
+#          - procps
+#          - perl
+#          - apt-transport-https
+#          - python3-pip
+#          - python3-docker
+#          - gnupg-agent
+#          - ca-certificates
+#      tags: instala
+#      when: ansible_distribution == 'Ubuntu'
 
 
 
-    - name: Adiciona a chave do repo docker
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+#   - name: Adiciona a chave do repo docker
+#     apt_key:
+#       url: https://download.docker.com/linux/ubuntu/gpg
+#       state: present
  
 
-    - name: Adiciona  repositorio da ultima versao estavel do docker
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-        state: present
+#    - name: Adiciona  repositorio da ultima versao estavel do docker
+#      apt_repository:
+#        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+#        state: present
+#      when: ansible_distribution == 'Ubuntu'
 
 
 
-    - name: Instala o  Docker
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-        - docker-ce
-        - docker-ce-cli 
-        - containerd.io
+#    - name: Instala o  Docker
+#      apt:
+#        name: "{{ packages }}"
+#        state: present
+#        update_cache: yes
+#      vars:
+#        packages:
+#        - docker-ce
+#        - docker-ce-cli 
+#        - containerd.io
+#      when: ansible_distribution == 'Ubuntu'
+
+#    - name: Reinicia o daemon-reload e o docker
+#      systemd:
+#        state: restarted
+#        daemon_reload: yes
+#        name: docker.service
 
 
-    - name: Reinicia o daemon-reload e o docker
-      systemd:
-        state: restarted
-        daemon_reload: yes
-        name: docker.service
-
-
-    - name: Faz o daemond reload
-      command: systemctl daemon-reload
+#    - name: Faz o daemond reload
+#      command: systemctl daemon-reload
 
 
     - name: Faz login no registry local
       shell: |
          docker logout
          docker login -u cti -p Ativas.123 registry.grupoaec.com.br
-      tags:
-        - login
+      notify:
+        - restart docker
+      when: "ansible_default_ipv4.network == '192.168.160.0'"
+
+
+    - name: Visualiza saida do status do servico
+      debug:
+        var: shell["docker login -u cti -p Ativas.123 registry.grupoaec.com.br"]  
 

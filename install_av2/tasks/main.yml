@@ -1,0 +1,27 @@
+- name: Copia AV
+  copy:
+    src: /etc/ansible/falcon-sensor_6.26.0-12303_amd64_ubuntu-debian.deb
+    dest: /tmp
+    remote_src: no
+
+
+- name: Install the CrowdStrike Package
+  shell: dpkg -i /tmp/falcon-sensor_6.26.0-12303_amd64_ubuntu-debian.deb
+
+- name: Set the CID
+  shell: /opt/CrowdStrike/falconctl -s --cid=647770B327F54E9A8E1417D093F32CCB-F8 --aph=http://192.168.239.11 --app=8080
+  ignore_errors: true
+
+- name: Start the agent
+  shell: systemctl start falcon-sensor
+
+
+#- name: Install a .deb package
+#  apt:
+#    deb: /tmp/falcon-sensor_6.26.0-12303_amd64_ubuntu-debian.deb
+
+
+- name: Remove instalacao
+  ansible.builtin.file:
+   path: /tmp/falcon-sensor_6.26.0-12303_amd64_ubuntu-debian.deb
+   state: absent

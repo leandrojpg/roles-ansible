@@ -7,14 +7,30 @@
     - docker-ce
     - docker-ce-cli
     - containerd.io
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+- name: Security updates only
+  command: yum -y --security update
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+#- name: Atualiza somente pacotes de segurança
+#  yum:
+#    security: yes
+#    state: latest
+#    exclude: docker*,containerd*
+#  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7' 
 
 
 - name: Faz a atualização do cache
   apt: update_cache=yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 
 - name: Instala o pacote para gerar atualizacao automatica de seguranca somente
   apt: name=unattended-upgrades state=present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 
 - name: Adiciona tarefa de atualizacao de seguranca aos sabados as 01 da manha
@@ -26,7 +42,111 @@
     month: "*"
     weekday: "6"
     job: "sudo /usr/bin/unattended-upgrade -v"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Executa o primeiro Update
   shell: sudo /usr/bin/unattended-upgrade
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+
+- name: Remove Chrony se tiver instalado no Ubuntu
+  apt:
+    name: ntp
+    state: absent
+  when: ansible_distribution == 'Ubuntu'
+
+
+
+- name: Remove Chrony se tiver instalado Centos
+  yum:
+    name: ntp
+    state: absent
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+- name: Instala os pacotes de NTP em servidores Ubuntu
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - chrony
+  when: ansible_distribution == 'Ubuntu'
+
+
+- name: Instala os pacotes de NTP  Centos
+  yum:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - chrony
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+- name: Ativa o ntp no boot se Ubuntu
+  ansible.builtin.systemd:
+    name: chrony
+    state: started
+    enabled: yes
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Ativa o ntp no boot se Centos
+  ansible.builtin.systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+- name: Ajusta a configuracao do NTP para Ubuntu
+  template: src=chrony.conf.j2 dest=/etc/chrony/chrony.conf
+  when: ansible_distribution == 'Ubuntu'
+
+
+- name: Ajusta a configuracao do NTP para Centos
+  template: src=chrony.conf.j2 dest=/etc/chrony.conf
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+- name: Ajusta o timezone America/Sao_Paulo
+  timezone:
+    name: America/Sao_Paulo
+
+
+- name: Forca a parada do ntp para sincronia incial
+  systemd: name=chrony state=stopped
+  when: ansible_distribution == 'Ubuntu'
+
+
+
+- name: Forca a parada do ntp para sincronia incial
+  systemd: name=chronyd state=stopped
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+
+- name: Force ntp
+  shell: chronyd -q "{{ ntpdate_server }}"
+  tags:
+    - ntp
+
+
+- name: Reinicia o ntp se for Ubuntu
+  ansible.builtin.systemd:
+    state: restarted
+    name: chrony
+  when: ansible_distribution == 'Ubuntu'
+
+
+- name: Reinicia o ntp se for Centos
+  ansible.builtin.systemd:
+    state: restarted
+    name: chronyd
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+
 
