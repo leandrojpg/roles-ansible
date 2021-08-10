@@ -1,3 +1,20 @@
+    - name: Importar Chave
+      apt_key:
+        url: http://deb.ocsinventory-ng.org/pubkey.gpg
+        state: present
+
+
+    - name: Adiciona repositorio da versao mais recente
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] http://deb.ocsinventory-ng.org/ubuntu/ bionic main
+        state: present
+        filename: ocsinventory.list
+
+    - name: Atualiza o Cache
+      apt:
+        update_cache: yes
+
+
     - name: Instala o  agente OCS
       apt:
         name: "{{ packages }}"
@@ -9,13 +26,12 @@
       when: ansible_distribution == 'Ubuntu'
 
 
+
     - name: Instala repositorio Epel no Centos
       yum:
         name: epel-release
         state: latest
       when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
-
-
 
 
 
@@ -34,7 +50,7 @@
         regex: '^export no_proxy'
         state: absent
 
-    - name: Inseri a linha export no_proxy com as excessoes
+    - name: Insere a linha export no_proxy com as excessoes
       lineinfile:
         path: /etc/environment
         line: export no_proxy=localhost,127.0.0.0/8,.grupoaec.com.br
@@ -56,7 +72,15 @@
 
 
     - name: Cria o arquivo de configuracao do OCS
+      template: src=ocsinventory-agent.cfg.j2 dest=/etc/ocsinventory-agent/ocsinventory-agent.cfg
+      when: ansible_distribution == 'Ubuntu'
+
+
+    - name: Cria o arquivo de configuracao do OCS
       template: src=ocsinventory-agent.cfg.j2 dest=/etc/ocsinventory/ocsinventory-agent.cfg
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
 
     - name: Remove a entrada no_proxy
       lineinfile:
@@ -64,7 +88,7 @@
         regex: '^export no_proxy'
         state: absent
 
-    - name: Inseri a linha export no_proxy com as excessoes
+    - name: Insere a linha export no_proxy com as excessoes
       lineinfile: 
         path: /etc/environment
         line: export no_proxy=localhost,127.0.0.0/8,.grupoaec.com.br
@@ -76,7 +100,7 @@
 
     - name: Executa inventario No Ubuntu
       shell: /usr/bin/ocsinventory-agent --force
-      when: ansible_facts['os_family'] == 'Debian'
+      when: ansible_distribution == 'Ubuntu' 
 
 
     - name: Executa inventario No Centos
