@@ -1,18 +1,52 @@
+    - name: Remove "ocsinventory-agent" se tiver instalado
+      apt:
+        name: ocsinventory-agent
+        state: absent 
+      when: ansible_distribution == 'Ubuntu'
+
+
     - name: Importar Chave
       apt_key:
         url: http://deb.ocsinventory-ng.org/pubkey.gpg
         state: present
+      when: ansible_distribution == 'Ubuntu' 
 
+
+    - name: Remove "ocsinventory-agent" se tiver instalado no Centos
+      yum:
+        name: ocsinventory-agent
+        state: absent
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+    - name: Instala repo atualizado para o agente do OCS
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        - https://rpm.ocsinventory-ng.org/ocsinventory-release-latest.el7.ocs.noarch.rpm
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
+
+
+    - name: Instala ocs agent 2.8
+      yum:
+        name: ocsinventory-agent
+        state: latest
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7' 
+      
 
     - name: Adiciona repositorio da versao mais recente
       ansible.builtin.apt_repository:
         repo: deb [arch=amd64] http://deb.ocsinventory-ng.org/ubuntu/ bionic main
         state: present
         filename: ocsinventory.list
+      when: ansible_distribution == 'Ubuntu'
 
     - name: Atualiza o Cache
       apt:
         update_cache: yes
+      when: ansible_distribution == 'Ubuntu' 
 
 
     - name: Instala o  agente OCS
@@ -32,7 +66,6 @@
         name: epel-release
         state: latest
       when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
-
 
 
     - name: Copia o repo atualizado
@@ -58,14 +91,6 @@
 
 
     
-    - name:
-      yum:
-        name: ocsinventory-agent
-        state: latest
-      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts ['distribution_major_version'] == '7'
-     
-
-
 #    - name: Atualiza todos os pacotes do servidor para ultima versao
 #      apt: upgrade=dist
 #      when: ansible_distribution == 'Ubuntu'
@@ -82,7 +107,7 @@
 
 
 
-    - name: Remove a entrada no_proxy
+    - name: Remove a entrada no_proxy no arquivo /etc/environment
       lineinfile:
         path: /etc/environment
         regex: '^export no_proxy'
