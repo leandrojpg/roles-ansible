@@ -77,7 +77,7 @@
 
 
 
-    - name: Remove a entrada no_proxy
+    - name: Remove a entrada no_proxy em /etc/enviroment
       lineinfile:
         path: /etc/environment
         regex: '^export no_proxy'
