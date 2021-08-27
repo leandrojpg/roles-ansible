@@ -1,38 +1,38 @@
-- name: Nao atualiza o pacote do docker e containerd
-  dpkg_selections:
-    name: "{{ item }}"
-    selection: hold
-  with_items:
-    - docker-ce
-    - docker-ce-cli
-    - containerd.io
+#- name: Nao atualiza o pacote do docker e containerd
+#  dpkg_selections:
+#    name: "{{ item }}"
+#    selection: hold
+#  with_items:
+#    - docker-ce
+#    - docker-ce-cli
+#    - containerd.io
 
 
-- name: Remove repositorios de terceiros
-  file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /etc/apt/sources.list.d/docker.list
-    - /etc/apt/sources.list.d/wazuh.list
-  tags: remove_repo
+#- name: Remove repositorios de terceiros
+#  file:
+#    path: "{{ item }}"
+#    state: absent
+#  loop:
+#    - /etc/apt/sources.list.d/docker.list
+#    - /etc/apt/sources.list.d/wazuh.list
+#  tags: remove_repo
 
 
-- name: Remove chave dos respositorios de terceiros
-  ansible.builtin.apt_key:
-    id: "{{item}}"
-    file: /etc/apt/trusted.gpg
-    state: absent
-  loop:
-    - 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-    - 0DCFCA5547B19D2A6099506096B3EE5F29111145 
-  tags: remove_key
+#- name: Remove chave dos respositorios de terceiros
+#  ansible.builtin.apt_key:
+#    id: "{{item}}"
+#    file: /etc/apt/trusted.gpg
+#    state: absent
+#  loop:
+#    - 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+#    - 0DCFCA5547B19D2A6099506096B3EE5F29111145 
+#  tags: remove_key
 
 
-- name: Instala o pacote para gerar atualizacao automatica de seguranca somente
-  apt: name=unattended-upgrades state=present
-
-
+#- name: Instala o pacote para gerar atualizacao automatica de seguranca somente
+#  apt: name=unattended-upgrades state=present
+#
+#
 - name: Faz a atualização do cache
   apt: update_cache=yes
 

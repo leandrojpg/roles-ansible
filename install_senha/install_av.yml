@@ -1,0 +1,16 @@
+- hosts: all
+  tasks:
+
+    - name: Install apache unzip
+      apt:
+        name: libpam-pwquality
+        state: present 
+
+
+    - name: Copia AV
+      copy:
+        src: /etc/ansible/roles/install_senha/common-password
+        dest: /etc/pam.d/common-password
+        remote_src: no
+    
+
