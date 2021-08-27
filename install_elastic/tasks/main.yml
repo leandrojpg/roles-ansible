@@ -95,13 +95,13 @@
 #    - name: Remove diretorios Elastic remanececentes
 #      file:
 #        state: absent
-#       path: "{{item}}"
+#        path: "{{item}}"
 #      with_items:
 #        - /var/lib/elasticsearch/
 #        - /etc/elasticsearch
 #      tags:
 #        - remove_files
-#
+
 
     - name:
       debug:
